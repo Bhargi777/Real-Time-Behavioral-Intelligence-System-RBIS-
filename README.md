@@ -2,7 +2,7 @@
 
 RBIS is a production-style computer vision platform designed for real-time human behavior analysis and multi-person tracking.
 
-## 🏗️ Architecture Overview
+##  Architecture Overview
 
 The system follows a modular pipeline approach:
 
@@ -13,7 +13,7 @@ The system follows a modular pipeline approach:
 5.  **Event Stream**: Real-time data serialization and WebSocket-based analytics streaming.
 6.  **Analytics API**: FastAPI backend for data serving and live dashboard updates.
 
-## 🚀 Getting Started
+##  Getting Started
 
 1.  Install dependencies:
     ```bash
@@ -28,7 +28,7 @@ The system follows a modular pipeline approach:
     python vision_core/pipeline.py
     ```
 
-## 🛠️ Modules
+##  Modules
 
 - `vision_core/`: Native camera handling and MediaPipe processing hubs.
 - `tracking_engine/`: Mathematical models for cross-frame identify assignment.
@@ -38,13 +38,13 @@ The system follows a modular pipeline approach:
 - `api_server/`: High-performance FastAPI server.
 - `dashboard/`: React + Tailwind + Recharts visualization.
 
-## 🔒 Privacy-First Design
+##  Privacy-First Design
 
 RBIS supports a landmark-only mode:
 - No raw video frames are persisted.
 - Only normalized landmark coordinates and computed behavior events are stored/streamed.
 
-## 🔮 Future Roadmap
+##  Future Roadmap
 
 - [ ] **Cross-Camera Fusion**: Identity persistence across multiple RTSP streams.
 - [ ] **Action Recognition**: LSTM/Transformer-based temporal action classification.
