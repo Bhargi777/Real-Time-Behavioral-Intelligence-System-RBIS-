@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # Main Analytics API
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+
+  # Vision (For non-GUI environments, this would use a video stream/Kafka source)
+  # vision:
+  #   build: .
+  #   command: python vision_core/pipeline.py
+  #   devices:
+  #     - "/dev/video0:/dev/video0" # For Linux webcam access
+  #   depends_on:
+  #     - api
+
+  # Simulation (Optional for headless Docker server)
+  # simulation:
+  #   build: .
+  #   command: python benchmarks/performance.py
+  #   depends_on:
+  #     - api
