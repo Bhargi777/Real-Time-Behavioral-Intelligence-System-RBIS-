@@ -43,3 +43,10 @@ The system follows a modular pipeline approach:
 RBIS supports a landmark-only mode:
 - No raw video frames are persisted.
 - Only normalized landmark coordinates and computed behavior events are stored/streamed.
+
+## 🔮 Future Roadmap
+
+- [ ] **Cross-Camera Fusion**: Identity persistence across multiple RTSP streams.
+- [ ] **Action Recognition**: LSTM/Transformer-based temporal action classification.
+- [ ] **Edge Support**: Optimization for Coral TPU and NVIDIA Jetson.
+- [ ] **Advanced Privacy**: Differential privacy for coordinate perturbations.

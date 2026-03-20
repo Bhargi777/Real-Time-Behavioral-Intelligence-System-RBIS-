@@ -83,12 +83,10 @@ class VisionPipeline:
             
             # 6. Stream to API (Non-blocking)
             try:
-                # We do a basic async-compatible or threaded push in production,
-                # but for now we'll just use a direct request (optimizable).
-                # requests.post(self.api_url, json=full_frame_data, timeout=0.01)
-                # print(f"Frame {frame_id}: {len(person_data)} persons tracked")
-                pass # placeholder for streaming
-            except Exception as e:
+                # In production, use an async or background pusher to avoid blocking
+                requests.post(self.api_url, json=full_frame_data, timeout=0.01)
+            except Exception:
+                # Silence timeouts to keep pipeline running
                 pass 
                 
             # Visualization
