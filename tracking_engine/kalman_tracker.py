@@ -53,8 +53,9 @@ class KalmanTracker:
         self.time_since_update = 0
         self.hit_streak += 1
         
-        # Measurement residual
-        y_residual = measurement.reshape(4, 1) - np.dot(self.H, self.X)
+        # Measurement update
+        measurement = np.array(measurement).reshape(4, 1)
+        y_residual = measurement - np.dot(self.H, self.X)
         
         # Innovation covariance
         S = np.dot(self.H, np.dot(self.P, self.H.T)) + self.R
