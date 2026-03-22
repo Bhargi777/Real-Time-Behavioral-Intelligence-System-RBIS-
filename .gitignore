@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+node_modules/
+rbis.db
+.DS_Store
+.env
+dist/
+build/
+.next/
+.vscode/
+.idea/

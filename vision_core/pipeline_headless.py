@@ -11,9 +11,10 @@ from behavior_engine.pose_behaviors import PoseBehaviorDetector
 from temporal_engine.state_manager import TemporalStateManager
 from event_stream.generator import EventGenerator
 
-class VisionPipeline:
+class VisionPipelineHeadless:
     """
     Integrates vision core, tracking, behavior, and temporal engines.
+    No GUI (imshow).
     """
     def __init__(self, api_url="http://localhost:8000/stream/update"):
         self.cap = CameraStream(0).start()
@@ -31,11 +32,12 @@ class VisionPipeline:
         self.running = True
         frame_id = 0
         
-        print("Starting Vision Pipeline (Press 'q' in video window to stop)...")
+        print("Starting Headless Vision Pipeline...")
         
         while self.running:
             frame = self.cap.read()
             if frame is None:
+                time.sleep(0.01)
                 continue
                 
             frame_id += 1
@@ -48,7 +50,7 @@ class VisionPipeline:
             person_data = []
             
             if landmarks:
-                # 2. Tracking (Single person for now, can extend to multi)
+                # 2. Tracking (Single person for now)
                 bbox = self.tracker_manager.landmarks_to_bbox(landmarks, frame.shape)
                 tracks = self.tracker_manager.update([bbox] if bbox else [])
                 
@@ -81,35 +83,19 @@ class VisionPipeline:
                 "persons": person_data
             }
             
-            # 6. Stream to API (Non-blocking)
+            # 6. Stream to API
             try:
-                # In production, use an async or background pusher to avoid blocking
-                requests.post(self.api_url, json=full_frame_data, timeout=0.01)
-            except Exception:
-                # Silence timeouts to keep pipeline running
+                requests.post(self.api_url, json=full_frame_data, timeout=0.1)
+            except Exception as e:
+                if frame_id % 30 == 0:
+                    print(f"Connection error at frame {frame_id}: {e}")
                 pass 
                 
-            # Visualization
-            self.pose_processor.draw_landmarks(frame, results)
-            
-            # Draw bbox and id
-            for p in person_data:
-                x, y, bw, bh = map(int, p["bbox"])
-                cv2.rectangle(frame, (x, y), (x+bw, y+bh), (0, 255, 0), 2)
-                cv2.putText(frame, f"ID:{p['id']} Eng:{p['engagement_score']}%", (x, y-10), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                if p["events"]:
-                    cv2.putText(frame, f"Events: {', '.join(p['events'])}", (x, y+bh+20), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-            
-            cv2.imshow("RBIS Live Intelligence", frame)
-            
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                self.running = False
+            if frame_id % 30 == 0:
+                print(f"Processed frame {frame_id} | Detected: {len(person_data)}")
                 
         self.cap.stop()
-        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
-    pipeline = VisionPipeline()
+    pipeline = VisionPipelineHeadless()
     pipeline.run()

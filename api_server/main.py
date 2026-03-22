@@ -54,6 +54,7 @@ async def post_update(data: dict):
     """
     External vision process posts updates here to be broadcast via websocket.
     """
+    print(f"Update received: {data['frame_id']} | Persons: {len(data['persons'])}")
     message = json.dumps(data)
     await manager.broadcast(message)
     return {"status": "ok"}

@@ -7,7 +7,7 @@ websockets
 pydantic
 sqlalchemy
 scipy
-react-scripts # This is for dashboard but let's just use it as a placeholder for now
 pandas
 matplotlib
 requests
+psutil
