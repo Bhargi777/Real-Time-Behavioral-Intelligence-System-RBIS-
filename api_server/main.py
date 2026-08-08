@@ -28,8 +28,14 @@ class ConnectionManager:
         self.active_connections.remove(websocket)
 
     async def broadcast(self, message: str):
+        dead_connections = []
         for connection in self.active_connections:
-            await connection.send_text(message)
+            try:
+                await connection.send_text(message)
+            except Exception:
+                dead_connections.append(connection)
+        for connection in dead_connections:
+            self.disconnect(connection)
 
 manager = ConnectionManager()
 
