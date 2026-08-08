@@ -1,6 +1,5 @@
 import time
 import psutil
-import torch # optional if using GPU
 import cv2
 import numpy as np
 from vision_core.pose_processor import PoseProcessor
