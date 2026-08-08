@@ -74,7 +74,9 @@ class VisionPipeline:
                         "engagement_score": temporal_info["engagement_score"]
                     }
                     person_data.append(person_info)
-            
+
+                self.temporal_manager.cleanup([t["id"] for t in tracks])
+
             # 5. Event Serialization
             full_frame_data = {
                 "frame_id": frame_id,
