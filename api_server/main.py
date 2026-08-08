@@ -3,7 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 import json
 import asyncio
 
+from api_server.database import SessionLocal, init_db, BehaviorEvent, EngagementMetric
+
 app = FastAPI(title="RBIS Analytics API")
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
 
 # Setup CORS for the React dashboard
 app.add_middleware(
@@ -61,6 +67,24 @@ async def post_update(data: dict):
     External vision process posts updates here to be broadcast via websocket.
     """
     print(f"Update received: {data['frame_id']} | Persons: {len(data['persons'])}")
+
+    db = SessionLocal()
+    try:
+        for person in data["persons"]:
+            for event_type in person.get("events", []):
+                db.add(BehaviorEvent(
+                    person_id=person["id"],
+                    event_type=event_type,
+                    confidence=1.0,
+                ))
+            db.add(EngagementMetric(
+                person_id=person["id"],
+                engagement_score=person["engagement_score"],
+            ))
+        db.commit()
+    finally:
+        db.close()
+
     message = json.dumps(data)
     await manager.broadcast(message)
     return {"status": "ok"}
