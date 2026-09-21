@@ -15,7 +15,7 @@ services:
   # Vision (For non-GUI environments, this would use a video stream/Kafka source)
   # vision:
   #   build: .
-  #   command: python vision_core/pipeline.py
+  #   command: python -m vision_core.pipeline_headless
   #   devices:
   #     - "/dev/video0:/dev/video0" # For Linux webcam access
   #   depends_on:
@@ -24,6 +24,6 @@ services:
   # Simulation (Optional for headless Docker server)
   # simulation:
   #   build: .
-  #   command: python benchmarks/performance.py
+  #   command: python -m benchmarks.performance
   #   depends_on:
   #     - api

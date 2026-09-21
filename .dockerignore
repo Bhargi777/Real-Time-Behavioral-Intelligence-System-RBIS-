@@ -1,0 +1,8 @@
+.git
+__pycache__/
+*.pyc
+.pytest_cache/
+dashboard/node_modules/
+dashboard/build/
+rbis.db
+.env

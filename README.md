@@ -19,14 +19,28 @@ The system follows a modular pipeline approach:
     ```bash
     pip install -r requirements.txt
     ```
-2.  Start the API server:
+2.  Start the API server (run modules from the repo root):
     ```bash
-    python api_server/main.py
+    python -m api_server.main
     ```
-3.  Run the vision pipeline:
+3.  Run the vision pipeline (webcam required):
     ```bash
-    python vision_core/pipeline.py
+    python -m vision_core.pipeline            # with preview window, press 'q' to quit
+    python -m vision_core.pipeline_headless   # no GUI
     ```
+4.  Start the dashboard:
+    ```bash
+    cd dashboard && npm install && npm start
+    ```
+
+The dashboard connects to `ws://localhost:8000/ws/analytics` by default; set `REACT_APP_WS_URL` to override.
+
+##  Tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest
+```
 
 ##  Modules
 
