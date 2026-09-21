@@ -1,56 +1,70 @@
-import numpy as np
+from configs.settings import BehaviorSettings
+
+# MediaPipe pose landmark indices
+L_SHOULDER, R_SHOULDER = 11, 12
+L_WRIST, R_WRIST = 15, 16
+L_HIP, R_HIP = 23, 24
+L_ANKLE, R_ANKLE = 27, 28
+
+
+def _visible(landmarks, *indices):
+    """
+    True if every requested landmark exists and is confidently visible.
+    MediaPipe returns coordinates for off-screen joints too, so geometry
+    alone would produce false events for partially framed people.
+    """
+    min_vis = BehaviorSettings.MIN_LANDMARK_VISIBILITY
+    return all(
+        i < len(landmarks) and landmarks[i].get("visibility", 1.0) >= min_vis
+        for i in indices
+    )
+
 
 class PoseBehaviorDetector:
     """
     Detects semantic behaviors from pose landmarks.
     """
     @staticmethod
-    def detect_hand_raise(landmarks):
+    def detect_hand_raise(landmarks, threshold=BehaviorSettings.HAND_RAISE_Y_THRESHOLD):
         """
-        Check if left or right wrist is above shoulder.
+        Check if left or right wrist is above its shoulder by at least `threshold`.
+        Image y grows downward, so "above" means a smaller y.
         """
         if not landmarks:
             return False
-            
-        # Mediapipe indices: 
-        # L_Shoulder: 11, R_Shoulder: 12
-        # L_Wrist: 15, R_Wrist: 16
-        
-        l_shoulder_y = landmarks[11]['y']
-        r_shoulder_y = landmarks[12]['y']
-        l_wrist_y = landmarks[15]['y']
-        r_wrist_y = landmarks[16]['y']
-        
-        return l_wrist_y < l_shoulder_y or r_wrist_y < r_shoulder_y
+
+        for shoulder, wrist in ((L_SHOULDER, L_WRIST), (R_SHOULDER, R_WRIST)):
+            if _visible(landmarks, shoulder, wrist) and \
+                    landmarks[shoulder]['y'] - landmarks[wrist]['y'] > threshold:
+                return True
+        return False
 
     @staticmethod
-    def detect_slouch(landmarks, threshold=0.15):
+    def detect_slouch(landmarks, threshold=BehaviorSettings.SLOUCH_TORSO_Y_THRESHOLD):
         """
         Detect slouching by check vertical alignment between shoulder and hip midpoints.
         """
-        if not landmarks:
+        if not landmarks or not _visible(landmarks, L_SHOULDER, R_SHOULDER, L_HIP, R_HIP):
             return False
-            
-        # L_Shoulder/Hip: 11/23, R_Shoulder/Hip: 12/24
-        shoulder_mid_y = (landmarks[11]['y'] + landmarks[12]['y']) / 2
-        hip_mid_y = (landmarks[23]['y'] + landmarks[24]['y']) / 2
-        
-        # Simple vertical distance check - if normalized distance is small, 
+
+        shoulder_mid_y = (landmarks[L_SHOULDER]['y'] + landmarks[R_SHOULDER]['y']) / 2
+        hip_mid_y = (landmarks[L_HIP]['y'] + landmarks[R_HIP]['y']) / 2
+
+        # Simple vertical distance check - if normalized distance is small,
         # it might be slouching or leaning.
         # This is very basic and needs calibration.
-        delta_y = abs(hip_mid_y - shoulder_mid_y)
-        return delta_y < threshold
+        return abs(hip_mid_y - shoulder_mid_y) < threshold
 
     @staticmethod
-    def detect_standing(landmarks):
+    def detect_standing(landmarks, threshold=BehaviorSettings.STANDING_LEG_Y_THRESHOLD):
         """
-        Checks if hips and ankles are aligned vertically.
+        Checks if ankles are far below the hips.
         """
-        if not landmarks or len(landmarks) < 29: # ankle indices 27, 28
+        if not landmarks or not _visible(landmarks, L_HIP, R_HIP, L_ANKLE, R_ANKLE):
             return False
-            
-        hip_y = (landmarks[23]['y'] + landmarks[24]['y']) / 2
-        ankle_y = (landmarks[27]['y'] + landmarks[28]['y']) / 2
-        
+
+        hip_y = (landmarks[L_HIP]['y'] + landmarks[R_HIP]['y']) / 2
+        ankle_y = (landmarks[L_ANKLE]['y'] + landmarks[R_ANKLE]['y']) / 2
+
         # If ankles are detected and far below hips, most likely standing.
-        return (ankle_y - hip_y) > 0.4
+        return (ankle_y - hip_y) > threshold

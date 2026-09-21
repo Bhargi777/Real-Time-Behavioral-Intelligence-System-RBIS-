@@ -1,11 +1,12 @@
 from collections import deque
-import numpy as np
+
+from configs.settings import BehaviorSettings
 
 class TemporalStateManager:
     """
     Maintains a rolling frame buffer and computes engagement score for each person.
     """
-    def __init__(self, window_size=30):
+    def __init__(self, window_size=BehaviorSettings.ENGAGEMENT_WINDOW_SIZE):
         self.window_size = window_size
         self.buffers = {} # map tracker_id -> deque of behavior events
 
