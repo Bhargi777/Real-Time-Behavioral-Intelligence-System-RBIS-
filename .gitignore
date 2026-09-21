@@ -9,3 +9,10 @@ build/
 .next/
 .vscode/
 .idea/
+
+# Claude Code (local tooling, never committed)
+.claude/
+CLAUDE.md
+
+# Tests / coverage
+.pytest_cache/
