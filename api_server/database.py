@@ -1,7 +1,6 @@
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
+from sqlalchemy.orm import declarative_base, sessionmaker
+from datetime import datetime, timezone
 
 # SQLite for local dev, easily swap for PostgreSQL
 DATABASE_URL = "sqlite:///./rbis.db"
@@ -11,13 +10,16 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+def utcnow():
+    return datetime.now(timezone.utc)
+
 class BehaviorEvent(Base):
     __tablename__ = "events"
     
     id = Column(Integer, primary_key=True, index=True)
     person_id = Column(Integer, index=True)
     event_type = Column(String)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=utcnow)
     confidence = Column(Float)
 
 class EngagementMetric(Base):
@@ -26,7 +28,7 @@ class EngagementMetric(Base):
     id = Column(Integer, primary_key=True, index=True)
     person_id = Column(Integer, index=True)
     engagement_score = Column(Float)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=utcnow)
 
 def init_db():
     Base.metadata.create_all(bind=engine)
