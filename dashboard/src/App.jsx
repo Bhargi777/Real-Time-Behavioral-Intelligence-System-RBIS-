@@ -2,28 +2,47 @@ import React, { useState, useEffect } from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Activity, Users, Clock, AlertCircle } from 'lucide-react';
 
+const WS_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8000/ws/analytics';
+const RECONNECT_DELAY_MS = 2000;
+
 const RBISDashboard = () => {
   const [data, setData] = useState([]);
   const [engagementHistory, setEngagementHistory] = useState([]);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8000/ws/analytics');
-    
-    ws.onopen = () => setConnected(true);
-    ws.onclose = () => setConnected(false);
-    ws.onmessage = (event) => {
-      const update = JSON.parse(event.data);
-      if (update.persons) {
-        setData(update.persons);
-        
-        // Compute average engagement for chart
-        const avgEng = update.persons.reduce((sum, p) => sum + p.engagement_score, 0) / (update.persons.length || 1);
-        setEngagementHistory(prev => [...prev.slice(-20), { time: new Date().toLocaleTimeString(), score: avgEng }]);
-      }
+    let ws;
+    let retryTimer;
+    let disposed = false;
+
+    const connect = () => {
+      ws = new WebSocket(WS_URL);
+
+      ws.onopen = () => setConnected(true);
+      ws.onclose = () => {
+        setConnected(false);
+        // Reconnect so the dashboard recovers when the API restarts.
+        if (!disposed) retryTimer = setTimeout(connect, RECONNECT_DELAY_MS);
+      };
+      ws.onmessage = (event) => {
+        const update = JSON.parse(event.data);
+        if (update.persons) {
+          setData(update.persons);
+
+          // Compute average engagement for chart
+          const avgEng = update.persons.reduce((sum, p) => sum + p.engagement_score, 0) / (update.persons.length || 1);
+          setEngagementHistory(prev => [...prev.slice(-20), { time: new Date().toLocaleTimeString(), score: avgEng }]);
+        }
+      };
     };
 
-    return () => ws.close();
+    connect();
+
+    return () => {
+      disposed = true;
+      clearTimeout(retryTimer);
+      ws.close();
+    };
   }, []);
 
   return (
